@@ -6,13 +6,14 @@ namespace CurlingScoreboard
     {
         public const int DefaultWidth = 1000;
         public const int DefaultHeight = 300;
+        public const int FontDivider = 12;
 
         readonly Graphics graphics;
         readonly Image image;
 
         public Board(int width = DefaultWidth, int height = DefaultHeight)
         {
-            Width = width;
+            Width = height * 5;
             Height = height;
             image = new Bitmap(Width, Height);
             graphics = Graphics.FromImage(image);
@@ -21,6 +22,8 @@ namespace CurlingScoreboard
             graphics.FillRegion(Brushes.LightGray, region);
 
             DrawNumberScale();
+            DrawTeam(1, "Yellow", Brushes.Yellow);
+            DrawTeam(-1, "Red", Brushes.Red);
         }
 
         public int Width { get; init; }
@@ -28,16 +31,20 @@ namespace CurlingScoreboard
 
         public void GenerateImage(string v)
         {
-            DrawBox(6, 1, 3);
-            DrawBox(15, 1, 13);
-            DrawBox(3, -1, 2);
+            DrawBox(6, 1, value: 3);
+            DrawBox(15, 1, value: 13);
+            DrawBox(14, 1, value: 14);
+            DrawBox(14, -1, value: 13);
+            DrawBox(13, -1, value: 13);
+            DrawBox(3, -1, value: 2);
+            DrawH(-2);
 
             image.Save(v);
         }
 
         void DrawNumberScale()
         {
-            Font font = new(FontFamily.GenericSansSerif, 12.0f, FontStyle.Regular);
+            Font font = new(FontFamily.GenericSansSerif, Height / FontDivider, FontStyle.Regular);
             StringFormat format = new()
             {
                 Alignment = StringAlignment.Center,
@@ -48,7 +55,7 @@ namespace CurlingScoreboard
             {
                 int x = PositionX(p);
                 int y = PositionY(0);
-                var layout = new RectangleF(x, y, 30, 30);
+                var layout = new RectangleF(x, y, BoxHeight(), BoxHeight());
                 graphics.DrawString($"{p}", font, Brushes.Black, layout, format);
             }
         }
@@ -61,24 +68,62 @@ namespace CurlingScoreboard
                 LineAlignment = StringAlignment.Center
             };
 
-            var font = new Font(FontFamily.GenericSansSerif, 12.0f, FontStyle.Regular);
+            var font = new Font(FontFamily.GenericSansSerif, Height / FontDivider, FontStyle.Regular);
             int x = PositionX(position);
             int y = PositionY(row);
-            graphics.DrawRectangle(Pens.Blue, x, y, 30, 30);
-            var layout = new RectangleF(x, y, 30, 30);
-            //graphics.DrawString($"{value}", font, Brushes.Blue, x, y);
+            graphics.DrawRectangle(Pens.Black, x, y, BoxHeight(), BoxHeight());
+            var layout = new RectangleF(x, y, BoxHeight(), BoxHeight());
           
-            graphics.DrawString($"{value}", font, Brushes.Blue, layout, format);
+            graphics.DrawString($"{value}", font, Brushes.Black, layout, format);
+        }
+
+        void DrawH(int row)
+        {
+            StringFormat format = new()
+            {
+                Alignment = StringAlignment.Center,
+                LineAlignment = StringAlignment.Center
+            };
+
+            var font = new Font(FontFamily.GenericSansSerif, Height / FontDivider, FontStyle.Regular);
+            int x = BoxHeight();
+            int y = PositionY(row);
+            graphics.DrawRectangle(Pens.Black, x, y, BoxHeight(), BoxHeight());
+            var layout = new RectangleF(x, y, BoxHeight(), BoxHeight());
+
+            graphics.DrawString($"H", font, Brushes.Black, layout, format);
+        }
+
+        void DrawTeam(int row, string name, Brush brush)
+        {
+            StringFormat format = new()
+            {
+                Alignment = StringAlignment.Center,
+                LineAlignment = StringAlignment.Center,
+            };
+
+            var font = new Font(FontFamily.GenericSansSerif, Height / FontDivider, FontStyle.Regular);
+            int x = BoxHeight();
+            int y = PositionY(row);
+            graphics.DrawRectangle(Pens.Black, x, y, BoxHeight()*3, BoxHeight());
+            var layout = new RectangleF(x, y, BoxHeight() * 3, BoxHeight());
+
+            graphics.DrawString($"{name}", font, brush, layout, format);
         }
 
         int PositionX(int position)
         {
-            return 50 + position * 30;
+            return (BoxHeight() * 4) + position * (int)(BoxHeight() * 1.1);
         }
 
         int PositionY(int row)
         {
-            return Height / 2 - (row * 35);
+            return (int)(Height / 2) - (int)(row * BoxHeight()) - (int)(BoxHeight() / 2);
+        }
+
+        int BoxHeight()
+        {
+            return (int)(Height / 5);
         }
     }
 }
